@@ -20,7 +20,7 @@ func SetupDriver(config config.AppConfig) (neo4j.Driver, error) {
 	return driver, nil
 }
 
-func GetSession() (neo4j.Session, error) {
+func GetWriteSession() (neo4j.Session, error) {
 	appConfig := config.GetAppConfig()
 	driver, err := SetupDriver(*appConfig)
 	if err != nil {
@@ -28,6 +28,23 @@ func GetSession() (neo4j.Session, error) {
 	}
 
 	session, err := driver.Session(neo4j.AccessModeWrite)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return session, err
+}
+
+func GetReadSession() (neo4j.Session, error) {
+	appConfig := config.GetAppConfig()
+	driver, err := SetupDriver(*appConfig)
+	if err != nil {
+		log.Println(err)
+	}
+
+	session, err := driver.Session(neo4j.AccessModeRead)
+
 	if err != nil {
 		log.Println(err)
 	}
