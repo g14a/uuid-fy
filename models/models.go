@@ -6,3 +6,9 @@ type PersonModel struct {
 	Email string `json:"email"`
 	DateOfBirth string `json:"dob"`
 }
+
+type UpdatePersonModel struct {
+	Name string	`json:"name"`
+	Email string `json:"email"`
+	DateOfBirth string `json:"dob"`
+}

@@ -28,7 +28,7 @@ func CreatePerson(w http.ResponseWriter, r *http.Request)  {
 func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var person models.PersonModel
+	var person models.UpdatePersonModel
 
 	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid payload")

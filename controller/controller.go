@@ -80,7 +80,7 @@ func CreatePerson(person models.PersonModel) (interface{}, error) {
 	return result, nil
 }
 
-func UpdatePerson(name string, person models.PersonModel) (interface{}, error) {
+func UpdatePerson(name string, person models.UpdatePersonModel) (interface{}, error) {
 
 	var personInterface map[string]interface{}
 	inrec, _ := json.Marshal(person)
@@ -91,7 +91,7 @@ func UpdatePerson(name string, person models.PersonModel) (interface{}, error) {
 
 	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
-			"MATCH (n:PersonModel { name: $name}) SET n = $props RETURN n", map[string]interface{}{
+			"MATCH (n:PersonModel { name: $name}) SET n += $props RETURN n", map[string]interface{}{
 				"name": name,
 				"props": personInterface,
 			})
