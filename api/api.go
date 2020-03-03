@@ -63,6 +63,17 @@ func GetPerson(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, result)
 }
 
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	
+	results, err := controller.GetAll()
+	
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	}
+	
+	respondWithJSON(w, http.StatusOK, results)
+}
+
 func respondWithError(w http.ResponseWriter, httpCode int, message string) {
 	respondWithJSON(w, httpCode, map[string]string{"error": message})
 }

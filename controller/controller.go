@@ -150,3 +150,34 @@ func GetPerson(name string) (interface{}, error) {
 
 	return result, nil
 }
+
+func GetAll() (interface{}, error) {
+	result, err := ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+		result, err := tx.Run(
+			"MATCH(n:PersonModel) return n",nil)
+		
+		if err != nil {
+			log.Println(err)
+			return nil, result.Err()
+		}
+		
+		records, err := neo4j.Collect(result, err)
+		
+		var resultMap []map[string]interface{}
+		
+		for _, v := range records {
+			rmap := v.GetByIndex(0)
+			
+			resultMap = append(resultMap, rmap.(neo4j.Node).Props())
+		}
+		
+		return resultMap, nil
+	})
+	
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	
+	return result, nil
+}
