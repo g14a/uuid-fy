@@ -3,6 +3,7 @@ module uuid-fy
 go 1.13
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/golang/mock v1.4.1 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/neo4j-drivers/gobolt v1.7.4 // indirect

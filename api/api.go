@@ -3,7 +3,9 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 	"uuid-fy/controller"
+	"uuid-fy/jwtauth"
 	"uuid-fy/models"
 )
 
@@ -74,6 +76,31 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, results)
 }
 
+func Signin(w http.ResponseWriter, r *http.Request) {
+	var creds jwtauth.Credentials
+	
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
+	expectedPassword, ok := Users[creds.Username]
+	
+	if !ok || expectedPassword != creds.Password {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	
+	tokenString, expirationTime, err := jwtauth.JwtToken(creds.Username)
+	
+	http.SetCookie(w, &http.Cookie{
+		Name:       "token",
+		Value:      tokenString,
+		Expires:   expirationTime,
+	})
+}
+
 func respondWithError(w http.ResponseWriter, httpCode int, message string) {
 	respondWithJSON(w, httpCode, map[string]string{"error": message})
 }
@@ -84,4 +111,9 @@ func respondWithJSON(w http.ResponseWriter, httpCode int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 	_, _ = w.Write(response)
+}
+
+// Username, password map
+var Users = map[string]string {
+	"gowtham": "clear",
 }
