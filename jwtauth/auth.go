@@ -19,7 +19,7 @@ type Claims struct {
 }
 
 func JwtToken(username string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(30 * time.Second)
+	expirationTime := time.Now().Add(1 * time.Minute)
 	claims := &Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
