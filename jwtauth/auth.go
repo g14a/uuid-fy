@@ -6,7 +6,7 @@ import (
 	"uuid-fy/config"
 )
 
-var jwtKey = []byte(config.GetAppConfig().AuthConfig.JwtToken)
+var JwtKey = []byte(config.GetAppConfig().AuthConfig.JwtToken)
 
 type Credentials struct {
 	Username string `json:"username"`
@@ -19,7 +19,7 @@ type Claims struct {
 }
 
 func JwtToken(username string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(30 * time.Second)
 	claims := &Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
@@ -28,10 +28,10 @@ func JwtToken(username string) (string, time.Time, error) {
 	}
 	
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(JwtKey)
 	
 	if err != nil {
-		return "", 0, err
+		return "", time.Time{}, err
 	}
 	
 	return tokenString, expirationTime, nil

@@ -10,9 +10,10 @@ import (
 func main() {
 	r := mux.NewRouter()
 	
-	r.HandleFunc("/users/create", api.CreatePerson).Methods("POST")
-	r.HandleFunc("/users/update", api.UpdatePerson).Methods("POST")
-	r.HandleFunc("/users", api.GetPerson).Methods("GET")
-	r.HandleFunc("/getall", api.GetAllUsers).Methods("GET")
+	r.Handle("/users/create", api.IsAuthorized(api.CreatePerson)).Methods("POST")
+	r.Handle("/users/update", api.IsAuthorized(api.UpdatePerson)).Methods("POST")
+	r.Handle("/users", api.IsAuthorized(api.GetPerson)).Methods("GET")
+	r.Handle("/getall", api.IsAuthorized(api.GetAllUsers)).Methods("GET")
+	r.HandleFunc("/signin", api.Signin).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8000", r))
 }

@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/dgrijalva/jwt-go"
 	"net/http"
-	"time"
 	"uuid-fy/controller"
 	"uuid-fy/jwtauth"
 	"uuid-fy/models"
@@ -92,6 +92,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
+	// get back jwt token to the client
 	tokenString, expirationTime, err := jwtauth.JwtToken(creds.Username)
 	
 	http.SetCookie(w, &http.Cookie{
@@ -111,6 +112,44 @@ func respondWithJSON(w http.ResponseWriter, httpCode int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 	_, _ = w.Write(response)
+}
+
+func IsAuthorized(endpoint func(w http.ResponseWriter, r *http.Request)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("token")
+		
+		if err != nil {
+			if err == http.ErrNoCookie {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		
+		tokenString := c.Value
+		
+		claims := &jwtauth.Claims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (i interface{}, err error) {
+			return jwtauth.JwtKey, nil
+		})
+		
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		
+		if !token.Valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		
+		endpoint(w, r)
+	})
 }
 
 // Username, password map
