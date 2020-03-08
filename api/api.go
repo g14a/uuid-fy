@@ -3,10 +3,12 @@ package api
 import (
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
+	"log"
 	"net/http"
-	"uuid-fy/controller"
 	"uuid-fy/jwtauth"
 	"uuid-fy/models"
+	"uuid-fy/neofunc"
+	"uuid-fy/pgfunc"
 )
 
 func CreatePerson(w http.ResponseWriter, r *http.Request)  {
@@ -18,7 +20,7 @@ func CreatePerson(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	result, err := controller.CreatePerson(person)
+	result, err := neofunc.CreatePerson(person)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -37,7 +39,7 @@ func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := controller.UpdatePerson(person.Name, person)
+	result, err := neofunc.UpdatePerson(person.Name, person)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -56,7 +58,7 @@ func GetPerson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := controller.GetPerson(person.Name)
+	result, err := neofunc.GetPerson(person.Name)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -67,7 +69,7 @@ func GetPerson(w http.ResponseWriter, r *http.Request) {
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	
-	results, err := controller.GetAll()
+	results, err := neofunc.GetAll()
 	
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
@@ -85,9 +87,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	expectedPassword, ok := Users[creds.Username]
-	
-	if !ok || expectedPassword != creds.Password {
+	if pgfunc.CheckUser(creds.Username, creds.Password) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -100,6 +100,33 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		Value:      tokenString,
 		Expires:   expirationTime,
 	})
+}
+
+func Signup(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+	
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
+	if user.Password != "" && user.Username != "" {
+		hashedPassword, err := pgfunc.HashPassword(user.Password)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		
+		user.Password = hashedPassword
+		
+		err = pgfunc.AddUserAuthData(user)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		
+		w.WriteHeader(http.StatusOK)
+	}
 }
 
 func respondWithError(w http.ResponseWriter, httpCode int, message string) {
@@ -150,9 +177,4 @@ func IsAuthorized(endpoint func(w http.ResponseWriter, r *http.Request)) http.Ha
 		
 		endpoint(w, r)
 	})
-}
-
-// Username, password map
-var Users = map[string]string {
-	"gowtham": "clear",
 }

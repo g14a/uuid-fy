@@ -1,4 +1,4 @@
-package controller
+package neofunc
 
 import (
 	"encoding/json"
