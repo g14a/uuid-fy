@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"uuid-fy/jwtauth"
@@ -11,10 +12,10 @@ import (
 	"uuid-fy/pgfunc"
 )
 
-func CreatePerson(w http.ResponseWriter, r *http.Request)  {
+func CreateUser(w http.ResponseWriter, r *http.Request)  {
 	defer r.Body.Close()
 
-	var person models.PersonModel
+	var person models.UserModel
 	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid payload")
 		return
@@ -32,14 +33,14 @@ func CreatePerson(w http.ResponseWriter, r *http.Request)  {
 func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var person models.UpdatePersonModel
+	var person models.ContactInfoModel
 
 	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid payload")
 		return
 	}
 
-	result, err := neofunc.UpdatePerson(person.Name, person)
+	result, err := neofunc.UpdateContactInfo(person.Name, person)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -48,17 +49,12 @@ func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, result)
 }
 
-func GetPerson(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	
+	userName := params["name"]
 
-	var person models.PersonModel
-
-	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid payload")
-		return
-	}
-
-	result, err := neofunc.GetPerson(person.Name)
+	result, err := neofunc.GetUser(userName)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))

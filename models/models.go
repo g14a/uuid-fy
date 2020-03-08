@@ -1,16 +1,14 @@
 package models
 
-type PersonModel struct {
+type UserModel struct {
 	UUID string `json:"id"`
 	Name string	`json:"name"`
-	Email string `json:"email"`
-	DateOfBirth string `json:"dob"`
 }
 
-type UpdatePersonModel struct {
-	Name string	`json:"name"`
+type ContactInfoModel struct {
+	Phone string `json:"phone"`
 	Email string `json:"email"`
-	DateOfBirth string `json:"dob"`
+	Address string `json:"address"`
 }
 
 // Auth user in Postgres

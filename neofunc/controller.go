@@ -43,7 +43,7 @@ func init()  {
 	initReadSession()
 }
 
-func CreatePerson(person models.PersonModel) (interface{}, error) {
+func CreatePerson(person models.UserModel) (interface{}, error) {
 
 	person.UUID = uuid.NewV4().String()
 
@@ -56,7 +56,7 @@ func CreatePerson(person models.PersonModel) (interface{}, error) {
 
 	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
-			"create(a:PersonModel { name:$name, id:$id, dob:$dob, email:$email}) return a",
+			"create(a:User { name:$name, id:$id, dob:$dob, email:$email}) return a",
 			personInterface)
 
 		if err != nil {
@@ -80,7 +80,7 @@ func CreatePerson(person models.PersonModel) (interface{}, error) {
 	return result, nil
 }
 
-func UpdatePerson(name string, person models.UpdatePersonModel) (interface{}, error) {
+func UpdateContactInfo(name string, person models.ContactInfoModel) (interface{}, error) {
 
 	var personInterface map[string]interface{}
 	inrec, _ := json.Marshal(person)
@@ -91,7 +91,7 @@ func UpdatePerson(name string, person models.UpdatePersonModel) (interface{}, er
 
 	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
-			"MATCH (n:PersonModel { name: $name}) SET n += $props RETURN n", map[string]interface{}{
+			"MATCH (n:User { name: $name}) SET n += $props RETURN n", map[string]interface{}{
 				"name": name,
 				"props": personInterface,
 			})
@@ -118,10 +118,10 @@ func UpdatePerson(name string, person models.UpdatePersonModel) (interface{}, er
 	return result, nil
 }
 
-func GetPerson(name string) (interface{}, error) {
+func GetUser(name string) (interface{}, error) {
 	result, err := ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
-			"MATCH(n:PersonModel {name: $name}) return n",
+			"MATCH(n:User {name: $name}) return n",
 			map[string]interface{}{
 				"name": name,
 			})
@@ -154,7 +154,7 @@ func GetPerson(name string) (interface{}, error) {
 func GetAll() (interface{}, error) {
 	result, err := ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
-			"MATCH(n:PersonModel) return n",nil)
+			"MATCH(n:User) return n",nil)
 		
 		if err != nil {
 			log.Println(err)
