@@ -1,2 +1,4 @@
 .idea
 config.yml
+server.crt
+server.key
