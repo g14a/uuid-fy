@@ -21,7 +21,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	result, err := neofunc.CreatePerson(person)
+	result, err := neofunc.CreateUser(person)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -33,14 +33,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var person models.ContactInfoModel
+	var contact models.ContactInfoModel
 
-	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid payload")
 		return
 	}
 
-	result, err := neofunc.UpdateContactInfo(person.Name, person)
+	result, err := neofunc.UpdateContactInfo(contact.Phone, contact)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -69,6 +69,28 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
+	}
+	
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func AddContactInfoToUser(w http.ResponseWriter, r *http.Request)  {
+	params := mux.Vars(r)
+	username := params["name"]
+	
+	var contactNode models.ContactInfoModel
+	
+	err := json.NewDecoder(r.Body).Decode(&contactNode)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
+	results, err := neofunc.CreateContactInfo(contactNode)
+	results, err = neofunc.CreateRelationToContactNode(username, contactNode.Phone)
+	
+	if err != nil {
+		log.Println(err)
 	}
 	
 	respondWithJSON(w, http.StatusOK, results)

@@ -2,10 +2,11 @@ package models
 
 type UserModel struct {
 	UUID string `json:"id"`
-	Name string	`json:"name"`
+	Name string	`json:"username"`
 }
 
 type ContactInfoModel struct {
+	Name string `json:"name"`
 	Phone string `json:"phone"`
 	Email string `json:"email"`
 	Address string `json:"address"`
@@ -19,3 +20,8 @@ type User struct {
 	tableName struct{}  `pg:"users"`
 }
 
+type EducationInfoModel struct {
+	PrimarySchool string `json:"primary"`
+	SecondarySchool string `json:"secondary"`
+	University string `json:"university"`
+}
