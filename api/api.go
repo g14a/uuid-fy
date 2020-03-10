@@ -10,8 +10,9 @@ import (
 	"uuid-fy/models"
 	"uuid-fy/neofunc"
 	"uuid-fy/neofunc/contact_info"
+	"uuid-fy/neofunc/education_info"
 	"uuid-fy/pgfunc"
-	
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
@@ -53,12 +54,12 @@ func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, result)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
+func GetUserUUID(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	userName := params["username"]
 
-	result, err := neofunc.GetUser(userName)
+	result, err := neofunc.GetUserUUID(userName)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -100,14 +101,56 @@ func AddContactInfoToUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, results)
 }
 
+func AddEducationInfoToUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	username := params["username"]
+
+	var educationNode models.EducationInfoModel
+
+	err := json.NewDecoder(r.Body).Decode(&educationNode)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	userUUID, err := neofunc.GetUserUUID(username)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println(userUUID.(string), "is string of uuid")
+
+	educationNode.RootID = userUUID.(string)
+
+	results, err := education_info.CreateEducationInfo(educationNode)
+	results, err = education_info.CreateRelationToEducationNode(educationNode.RootID)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
 func GetContactInfoOfUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	username := params["username"]
 
 	results, err := contact_info.GetContactInfoOfUser(username)
 
-	fmt.Println(results)
-	
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func GetEducationInfoOfUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	username := params["username"]
+
+	results, err := education_info.GetEducationInfoOfUser(username)
+
 	if err != nil {
 		log.Println(err)
 	}
@@ -132,7 +175,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	// get back jwt token to the client
 	tokenString, err := jwtauth.JwtToken(creds.Username)
 	fmt.Println(tokenString)
-	
+
 	w.Header().Set("token", tokenString)
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{"message": "Successful Sign in"})
@@ -174,7 +217,7 @@ func respondWithJSON(w http.ResponseWriter, httpCode int, payload interface{}) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
-	
+
 	_, _ = w.Write(response)
 }
 
@@ -192,7 +235,7 @@ func IsAuthorized(endpoint func(w http.ResponseWriter, r *http.Request)) http.Ha
 		}
 
 		refreshToken := jwtauth.RefreshJWT(tokenStr)
-		
+
 		claims := &jwtauth.Claims{}
 		token, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (i interface{}, err error) {
 			return jwtauth.JwtKey, nil

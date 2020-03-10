@@ -2,12 +2,13 @@ package neofunc
 
 import (
 	"encoding/json"
-	"github.com/neo4j/neo4j-go-driver/neo4j"
-	uuid "github.com/satori/go.uuid"
 	"log"
 	"sync"
 	"uuid-fy/boot"
 	"uuid-fy/models"
+
+	"github.com/neo4j/neo4j-go-driver/neo4j"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -83,14 +84,14 @@ func CreateUser(person models.UserModel) (interface{}, error) {
 }
 
 
-func GetUser(name string) (interface{}, error) {
+func GetUserUUID(name string) (interface{}, error) {
 	defer ReadSession.Close()
 	
 	result, err := ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
-			"MATCH(n:UserNode {name: $name}) return n",
+			"MATCH(n:UserNode {username: $username}) return n.id",
 			map[string]interface{}{
-				"name": name,
+				"username": name,
 			})
 
 		if err != nil {
@@ -98,16 +99,13 @@ func GetUser(name string) (interface{}, error) {
 			return nil, result.Err()
 		}
 
-		records, err := neo4j.Collect(result, err)
+		if result.Next() {
+			rmap := result.Record().GetByIndex(0)
 
-		var resultMap []map[string]interface{}
-		for k, v := range records {
-			rmap := v.GetByIndex(k)
-
-			resultMap = append(resultMap, rmap.(neo4j.Node).Props())
+			return rmap, nil
 		}
 
-		return resultMap, nil
+		return nil, result.Err()
 	})
 
 	if err != nil {

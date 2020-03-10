@@ -21,6 +21,7 @@ type User struct {
 }
 
 type EducationInfoModel struct {
+	RootID string `json:"rootuid"`
 	PrimarySchool string `json:"primary"`
 	SecondarySchool string `json:"secondary"`
 	University string `json:"university"`
