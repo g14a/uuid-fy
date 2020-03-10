@@ -2,7 +2,6 @@ package neofunc
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 	uuid "github.com/satori/go.uuid"
 	"log"
@@ -83,45 +82,6 @@ func CreateUser(person models.UserModel) (interface{}, error) {
 	return result, nil
 }
 
-func UpdateContactInfo(name string, person models.ContactInfoModel) (interface{}, error) {
-
-	defer WriteSession.Close()
-	
-	var personInterface map[string]interface{}
-	inrec, _ := json.Marshal(person)
-	err := json.Unmarshal(inrec, &personInterface)
-	if err != nil {
-		log.Println(err)
-	}
-
-	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
-		result, err := tx.Run(
-			"MATCH (n:ContactInfoNode { name: $name}) SET n += $props RETURN n", map[string]interface{}{
-				"name": name,
-				"props": personInterface,
-			})
-
-		if err != nil {
-			log.Println(err)
-			return nil, result.Err()
-		}
-
-		if result.Next() {
-			rmap := result.Record().GetByIndex(0)
-
-			return rmap.(neo4j.Node).Props(), nil
-		}
-		
-		return result, nil
-	})
-
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-
-	return result, nil
-}
 
 func GetUser(name string) (interface{}, error) {
 	defer ReadSession.Close()
@@ -190,109 +150,3 @@ func GetAll() (interface{}, error) {
 	
 	return result, nil
 }
-
-func CreateContactInfo(contactInfo models.ContactInfoModel) (interface{}, error) {
-	defer WriteSession.Close()
-	
-	var contactInterface map[string]interface{}
-	bytes, _ := json.Marshal(contactInfo)
-	err := json.Unmarshal(bytes, &contactInterface)
-	if err != nil {
-		log.Println(err)
-	}
-	
-	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
-		result, err := tx.Run(
-			"CREATE (c:ContactInfoNode { name:$name, phone:$phone, email:$email, address:$address}) RETURN c",
-			contactInterface)
-		
-		if err != nil {
-			log.Println(err)
-		}
-		
-		if result.Next() {
-			rmap := result.Record().GetByIndex(0)
-			
-			return rmap.(neo4j.Node).Props(), nil
-		}
-		
-		return nil, result.Err()
-	})
-	
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	
-	return result, nil
-}
-
-func CreateRelationToContactNode(username, phone string) (interface{}, error) {
-	defer WriteSession.Close()
-	
-	params := map[string]interface{} {
-		"username": username,
-		"phone": phone,
-	}
-	
-	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
-		result, err := tx.Run(
-			"Match(a:UserNode),(c:ContactInfoNode) where a.username=$username and c.phone=$phone CREATE (a)-[r:ContactInfoRelation]->(c) return type(r)",
-				params)
-		
-		if err != nil {
-			log.Println(err)
-		}
-		
-		if result.Next() {
-			fmt.Println(result)
-			return result, nil
-		}
-		
-		return nil, result.Err()
-	})
-	
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	
-	return result, nil
-}
-
-func CreateEducationInfo(educationInfo models.EducationInfoModel) (interface{}, error) {
-	defer WriteSession.Close()
-	
-	var educationInterface map[string]interface{}
-	bytes, _ := json.Marshal(educationInfo)
-	err := json.Unmarshal(bytes, &educationInterface)
-	if err != nil {
-		log.Println(err)
-	}
-	
-	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
-		result, err := tx.Run(
-			"CREATE (c:EducationInfoModel { primary:$primary, secondary:$secondary, university:$university}) RETURN c",
-			educationInterface)
-		
-		if err != nil {
-			log.Println(err)
-		}
-		
-		if result.Next() {
-			rmap := result.Record().GetByIndex(0)
-			
-			return rmap.(neo4j.Node).Props(), nil
-		}
-		
-		return nil, result.Err()
-	})
-	
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	
-	return result, nil
-}
-

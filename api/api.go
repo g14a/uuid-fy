@@ -9,6 +9,7 @@ import (
 	"uuid-fy/jwtauth"
 	"uuid-fy/models"
 	"uuid-fy/neofunc"
+	"uuid-fy/neofunc/contact_info"
 	"uuid-fy/pgfunc"
 )
 
@@ -40,7 +41,7 @@ func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := neofunc.UpdateContactInfo(contact.Phone, contact)
+	result, err := contact_info.UpdateContactInfo(contact.Phone, contact)
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, result.(string))
@@ -86,11 +87,23 @@ func AddContactInfoToUser(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	
-	results, err := neofunc.CreateContactInfo(contactNode)
-	results, err = neofunc.CreateRelationToContactNode(username, contactNode.Phone)
+	results, err := contact_info.CreateContactInfo(contactNode)
+	results, err = contact_info.CreateRelationToContactNode(username, contactNode.Phone)
 	
 	if err != nil {
 		log.Println(err)
+	}
+	
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func GetContactInfoOfUser(w http.ResponseWriter, r *http.Request)  {
+	params := mux.Vars(r)
+	username := params["username"]
+	
+	results, err := contact_info.GetContactInfoOfUser(username)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 	}
 	
 	respondWithJSON(w, http.StatusOK, results)
