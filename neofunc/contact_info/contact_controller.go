@@ -125,7 +125,7 @@ func GetContactInfoOfUser(username string) (interface{}, error) {
 		"username": username,
 	}
 	
-	result, err := neofunc.WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+	result, err := neofunc.ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"MATCH p=(u:UserNode {username:$username})-[r:ContactInfoRelation]->(c:ContactInfoNode) return c",
 			params)

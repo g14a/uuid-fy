@@ -18,7 +18,7 @@ type Claims struct {
 	Username string `json:"username"`
 }
 
-func JwtToken(username string) (string, time.Time, error) {
+func JwtToken(username string) (string, error) {
 	expirationTime := time.Now().Add(1 * time.Minute)
 	claims := &Claims{
 		StandardClaims: jwt.StandardClaims{
@@ -31,8 +31,8 @@ func JwtToken(username string) (string, time.Time, error) {
 	tokenString, err := token.SignedString(JwtKey)
 	
 	if err != nil {
-		return "", time.Time{}, err
+		return "", err
 	}
 	
-	return tokenString, expirationTime, nil
+	return tokenString, nil
 }

@@ -2,47 +2,31 @@ package jwtauth
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"net/http"
+	"log"
 	"time"
 )
 
-func RefreshJWT(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("token")
-	
-	if err != nil {
-		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	
-	tokenString := c.Value
+func RefreshJWT(tokenStr string) string {
 	
 	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (i interface{}, err error) {
+	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (i interface{}, err error) {
 		return JwtKey, nil
 	})
 	
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+			return ""
 		}
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return ""
 	}
 	
 	if !token.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+		return ""
 	}
 	
 	// check if old token is about to expire only under 30 seconds
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30 * time.Second {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return tokenStr
 	}
 	
 	// Create new token with renewed expiration time
@@ -50,16 +34,13 @@ func RefreshJWT(w http.ResponseWriter, r *http.Request) {
 	claims.ExpiresAt = expirationTime.Unix()
 	
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err = newToken.SignedString(JwtKey)
+	tokenStr, err = newToken.SignedString(JwtKey)
 	
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Println(err)
+		return ""
 	}
 	
-	http.SetCookie(w, &http.Cookie{
-		Name:       "token",
-		Value:      tokenString,
-		Expires:    time.Time{},
-	})
+	return tokenStr
+	
 }
