@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"uuid-fy/boot"
 	"uuid-fy/models"
-	"uuid-fy/neofunc"
 
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
 func CreateEducationInfo(educationInfo models.EducationInfoModel) (interface{}, error) {
-	defer neofunc.WriteSession.Close()
 
 	var educationInterface map[string]interface{}
 	bytes, _ := json.Marshal(educationInfo)
@@ -20,7 +19,14 @@ func CreateEducationInfo(educationInfo models.EducationInfoModel) (interface{}, 
 		log.Println(err)
 	}
 
-	result, err := neofunc.WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+	session, err := boot.GetWriteSession()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"CREATE (e:EducationInfoNode { rootuid:$rootuid, primary:$primary, secondary:$secondary, university:$university}) RETURN e",
 			educationInterface)
@@ -47,13 +53,20 @@ func CreateEducationInfo(educationInfo models.EducationInfoModel) (interface{}, 
 }
 
 func CreateRelationToEducationNode(uuid string) (interface{}, error) {
-	defer neofunc.WriteSession.Close()
+	
 
 	params := map[string]interface{}{
 		"id": uuid,
 	}
 
-	result, err := neofunc.WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+	session, err := boot.GetWriteSession()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"Match(a:UserNode),(e:EducationInfoNode) where a.id=$id and e.rootuid=$id CREATE (a)-[r:EducationInfoRelation]->(e) return type(r)",
 			params)
@@ -79,13 +92,19 @@ func CreateRelationToEducationNode(uuid string) (interface{}, error) {
 }
 
 func GetEducationInfoOfUser(username string) (interface{}, error) {
-	defer neofunc.ReadSession.Close()
 
 	params := map[string]interface{}{
 		"username": username,
 	}
 
-	result, err := neofunc.ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+	session, err := boot.GetReadSession()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer session.Close()
+
+	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"MATCH p=(u:UserNode {username:$username})-[r:EducationInfoRelation]->(e:EducationInfoNode) return e;",
 			params)

@@ -3,7 +3,6 @@ package neofunc
 import (
 	"encoding/json"
 	"log"
-	"sync"
 	"uuid-fy/boot"
 	"uuid-fy/models"
 
@@ -11,42 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var (
-	WriteSession neo4j.Session
-	ReadSession  neo4j.Session
-)
-
-var ReadOnce sync.Once
-var WriteOnce sync.Once
-
-func initReadSession()  {
-	ReadOnce.Do(func() {
-		bootSession, err := boot.GetReadSession()
-		if err != nil {
-			log.Println(err)
-		}
-		ReadSession = bootSession
-	})
-}
-
-func initWriteSession()  {
-	WriteOnce.Do(func() {
-		bootSession, err := boot.GetWriteSession()
-		if err != nil {
-			log.Println(err)
-		}
-		WriteSession = bootSession
-	})
-}
-
-func init()  {
-	initWriteSession()
-	initReadSession()
-}
-
 func CreateUser(person models.UserModel) (interface{}, error) {
-
-	defer WriteSession.Close()
 	
 	person.UUID = uuid.NewV4().String()
 
@@ -57,7 +21,14 @@ func CreateUser(person models.UserModel) (interface{}, error) {
 		log.Println(err)
 	}
 
-	result, err := WriteSession.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+	session, err := boot.GetWriteSession()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"create(a:UserNode { username:$username, id:$id}) return a",
 			personInterface)
@@ -85,9 +56,14 @@ func CreateUser(person models.UserModel) (interface{}, error) {
 
 
 func GetUserUUID(name string) (interface{}, error) {
-	defer ReadSession.Close()
+	session, err := boot.GetReadSession()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer session.Close()
 	
-	result, err := ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"MATCH(n:UserNode {username: $username}) return n.id",
 			map[string]interface{}{
@@ -117,9 +93,14 @@ func GetUserUUID(name string) (interface{}, error) {
 }
 
 func GetAll() (interface{}, error) {
-	defer ReadSession.Close()
-	
-	result, err := ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+	session, err := boot.GetReadSession()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer session.Close()
+
+	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"MATCH(n:UserNode) return n",nil)
 		

@@ -19,7 +19,7 @@ func main() {
 
 	// Contact Info
 	r.Handle("/users/{username}/createcontactinfo", api.IsAuthorized(api.AddContactInfoToUser)).Methods("POST")
-	r.Handle("/users/{username}/contactinfo",  api.IsAuthorized(api.GetContactInfoOfUser)).Methods("GET")
+	r.HandleFunc("/users/{username}/contactinfo",  api.GetContactInfoOfUser).Methods("GET")
 
 	// Education Info
 	r.HandleFunc("/users/{username}/addeducationinfo", api.AddEducationInfoToUser).Methods("POST")
