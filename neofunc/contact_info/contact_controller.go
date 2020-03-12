@@ -2,11 +2,13 @@ package contact_info
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/neo4j/neo4j-go-driver/neo4j"
 	"log"
 	"uuid-fy/models"
 	"uuid-fy/neofunc"
+
+	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
 func CreateContactInfo(contactInfo models.ContactInfoModel) (interface{}, error) {
@@ -125,28 +127,32 @@ func GetContactInfoOfUser(username string) (interface{}, error) {
 		"username": username,
 	}
 	
-	result, err := neofunc.ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
-		result, err := tx.Run(
-			"MATCH p=(u:UserNode {username:$username})-[r:ContactInfoRelation]->(c:ContactInfoNode) return c",
-			params)
+	if neofunc.ReadSession != nil {
+		result, err := neofunc.ReadSession.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+			result, err := tx.Run(
+				"MATCH p=(u:UserNode {username:$username})-[r:ContactInfoRelation]->(c:ContactInfoNode) return c",
+				params)
+			
+			if err != nil {
+				log.Println(err)
+			}
+			
+			if result.Next() {
+				rmap := result.Record().GetByIndex(0)
+				
+				return rmap.(neo4j.Node).Props(), nil
+			}
+			
+			return nil, result.Err()
+		})
 		
 		if err != nil {
 			log.Println(err)
+			return nil, err
 		}
 		
-		if result.Next() {
-			rmap := result.Record().GetByIndex(0)
-			
-			return rmap.(neo4j.Node).Props(), nil
-		}
-		
-		return nil, result.Err()
-	})
-	
-	if err != nil {
-		log.Println(err)
-		return nil, err
+		return result, nil
 	}
-	
-	return result, nil
+
+	return nil, errors.New("Session could not be opened")
 }
