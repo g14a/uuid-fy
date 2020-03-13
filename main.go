@@ -11,7 +11,6 @@ func main() {
 	r := mux.NewRouter()
 	
 	r.HandleFunc("/users/getall", api.GetAllUsers).Methods("GET")
-	r.HandleFunc("/users/create", api.CreateUser).Methods("POST")
 	r.HandleFunc("/users/update", api.UpdatePerson).Methods("POST")
 	r.HandleFunc("/users/{username}", api.GetUserUUID).Methods("GET")
 	r.HandleFunc("/users/signin", api.Signin).Methods("POST")

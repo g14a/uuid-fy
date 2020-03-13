@@ -10,13 +10,13 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func CreateUser(person models.UserModel) (interface{}, error) {
+func CreateUser(user models.UserModel) (interface{}, error) {
 	
-	person.UUID = uuid.NewV4().String()
+	user.UUID = uuid.NewV4().String()
 
-	var personInterface map[string]interface{}
-	inrec, _ := json.Marshal(person)
-	err := json.Unmarshal(inrec, &personInterface)
+	var userInterface map[string]interface{}
+	inrec, _ := json.Marshal(user)
+	err := json.Unmarshal(inrec, &userInterface)
 	if err != nil {
 		log.Println(err)
 	}
@@ -31,7 +31,7 @@ func CreateUser(person models.UserModel) (interface{}, error) {
 	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"create(a:UserNode { username:$username, id:$id}) return a",
-			personInterface)
+			userInterface)
 
 		if err != nil {
 			log.Println(err)

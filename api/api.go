@@ -17,24 +17,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	var person models.UserModel
-	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid payload")
-		return
-	}
-
-	result, err := neofunc.CreateUser(person)
-
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, result.(string))
-	}
-
-	respondWithJSON(w, http.StatusOK, result)
-}
-
 func UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -190,6 +172,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.Password != "" && user.Username != "" {
+
 		hashedPassword, err := pgfunc.HashPassword(user.Password)
 		if err != nil {
 			log.Println(err)
@@ -197,6 +180,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		}
 
 		user.Password = hashedPassword
+		
+		var userNode models.UserModel
+		userNode.Username = user.Username
+
+		_, err = neofunc.CreateUser(userNode)		
 
 		err = pgfunc.AddUserAuthData(user)
 		if err != nil {

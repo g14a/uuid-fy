@@ -2,7 +2,7 @@ package models
 
 type UserModel struct {
 	UUID string `json:"id"`
-	Name string	`json:"username"`
+	Username string	`json:"username"`
 }
 
 type ContactInfoModel struct {
