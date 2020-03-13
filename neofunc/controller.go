@@ -5,7 +5,7 @@ import (
 	"log"
 	"uuid-fy/boot"
 	"uuid-fy/models"
-
+	
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 	uuid "github.com/satori/go.uuid"
 )
@@ -93,6 +93,7 @@ func GetUserUUID(name string) (interface{}, error) {
 }
 
 func GetAll() (interface{}, error) {
+	
 	session, err := boot.GetReadSession()
 	if err != nil {
 		log.Print(err)

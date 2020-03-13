@@ -69,13 +69,14 @@ func GetUserUUID(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-
+	
 	results, err := neofunc.GetAll()
 
 	if err != nil {
+		fmt.Println(err)
 		respondWithError(w, http.StatusBadRequest, err.Error())
 	}
-
+	
 	respondWithJSON(w, http.StatusOK, results)
 }
 
@@ -117,9 +118,7 @@ func AddEducationInfoToUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-
-	fmt.Println(userUUID.(string), "is string of uuid")
-
+	
 	educationNode.RootID = userUUID.(string)
 
 	results, err := education_info.CreateEducationInfo(educationNode)
