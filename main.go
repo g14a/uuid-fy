@@ -21,7 +21,7 @@ func main() {
 	r.HandleFunc("/users/{username}/contactinfo",  api.GetContactInfoOfUser).Methods("GET")
 	
 	// Education Info
-	r.HandleFunc("/users/{username}/addeducationinfo", api.AddEducationInfoToUser).Methods("POST")
+	r.HandleFunc("/users/{username}/createeducationinfo", api.AddEducationInfoToUser).Methods("POST")
 	r.HandleFunc("/users/{username}/educationinfo", api.GetEducationInfoOfUser).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8000", r))

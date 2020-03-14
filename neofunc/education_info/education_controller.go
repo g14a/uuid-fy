@@ -53,7 +53,6 @@ func CreateEducationInfo(educationInfo models.EducationInfoModel) (interface{}, 
 }
 
 func CreateRelationToEducationNode(uuid string) (interface{}, error) {
-	
 
 	params := map[string]interface{}{
 		"id": uuid,
@@ -66,6 +65,8 @@ func CreateRelationToEducationNode(uuid string) (interface{}, error) {
 
 	defer session.Close()
 
+	fmt.Println(params);
+	
 	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
 			"Match(a:UserNode),(e:EducationInfoNode) where a.id=$id and e.rootuid=$id CREATE (a)-[r:EducationInfoRelation]->(e) return type(r)",
