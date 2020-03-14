@@ -11,6 +11,8 @@ import (
 	"uuid-fy/neofunc"
 	"uuid-fy/neofunc/contact_info"
 	"uuid-fy/neofunc/education_info"
+	"uuid-fy/neofunc/health_info"
+
 	"uuid-fy/pgfunc"
 
 	"github.com/dgrijalva/jwt-go"
@@ -51,14 +53,14 @@ func GetUserUUID(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	
+
 	results, err := neofunc.GetAll()
 
 	if err != nil {
 		fmt.Println(err)
 		respondWithError(w, http.StatusBadRequest, err.Error())
 	}
-	
+
 	respondWithJSON(w, http.StatusOK, results)
 }
 
@@ -100,11 +102,41 @@ func AddEducationInfoToUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	
+
 	educationNode.RootID = userUUID.(string)
 
 	results, err := education_info.CreateEducationInfo(educationNode)
 	results, err = education_info.CreateRelationToEducationNode(educationNode.RootID)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func AddHealthInfoToUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	username := params["username"]
+
+	var healthNode models.HealthInfoModel
+
+	err := json.NewDecoder(r.Body).Decode(&healthNode)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	userUUID, err := neofunc.GetUserUUID(username)
+	if err != nil {
+		log.Println(err)
+	}
+
+	healthNode.RootID = userUUID.(string)
+	
+
+	results, err := health_info.CreateHealthInfo(healthNode)
+	results, err = health_info.CreateRelationToHealthNode(healthNode.RootID)
 
 	if err != nil {
 		log.Println(err)
@@ -138,6 +170,20 @@ func GetEducationInfoOfUser(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, results)
 }
+
+func GetHealthInfoOfUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	username := params["username"]
+	
+	results, err := health_info.GetHealthInfoOfUser(username)
+	
+	if err != nil {
+		log.Println(err)
+	}
+	
+	respondWithJSON(w, http.StatusOK, results)
+}
+
 
 func Signin(w http.ResponseWriter, r *http.Request) {
 	var creds jwtauth.Credentials
@@ -180,11 +226,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		}
 
 		user.Password = hashedPassword
-		
+
 		var userNode models.UserModel
 		userNode.Username = user.Username
 
-		_, err = neofunc.CreateUser(userNode)		
+		_, err = neofunc.CreateUser(userNode)
 
 		err = pgfunc.AddUserAuthData(user)
 		if err != nil {

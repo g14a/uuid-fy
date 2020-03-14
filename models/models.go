@@ -26,3 +26,9 @@ type EducationInfoModel struct {
 	SecondarySchool string `json:"secondary"`
 	University string `json:"university"`
 }
+
+type HealthInfoModel struct {
+	RootID string `json:"rootuid"`
+	BirthHospital string `json:"birthhospital"`
+	BloodGroup string `json:"bloodgroup"`
+}

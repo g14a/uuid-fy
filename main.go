@@ -17,13 +17,17 @@ func main() {
 	r.HandleFunc("/users/signup", api.Signup).Methods("POST")
 	
 	// Contact Info
-	r.HandleFunc("/users/{username}/createcontactinfo", api.AddContactInfoToUser).Methods("POST")
+	r.HandleFunc("/users/{username}/addcontactinfo", api.AddContactInfoToUser).Methods("POST")
 	r.HandleFunc("/users/{username}/contactinfo",  api.GetContactInfoOfUser).Methods("GET")
 	
 	// Education Info
-	r.HandleFunc("/users/{username}/createeducationinfo", api.AddEducationInfoToUser).Methods("POST")
+	r.HandleFunc("/users/{username}/addeducationinfo", api.AddEducationInfoToUser).Methods("POST")
 	r.HandleFunc("/users/{username}/educationinfo", api.GetEducationInfoOfUser).Methods("GET")
 
+	// Health Info
+	r.HandleFunc("/users/{username}/addhealthinfo", api.AddHealthInfoToUser).Methods("POST")
+	r.HandleFunc("/users/{username}/healthinfo", api.GetHealthInfoOfUser).Methods("GET")
+	
 	log.Fatal(http.ListenAndServe(":8000", r))
 	
 }
