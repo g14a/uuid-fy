@@ -6,10 +6,10 @@ type UserModel struct {
 }
 
 type ContactInfoModel struct {
+	RootId string `json:"rootuid"`
 	Name string `json:"name"`
 	Phone string `json:"phone"`
 	Email string `json:"email"`
-	Address string `json:"address"`
 }
 
 // Auth user in Postgres

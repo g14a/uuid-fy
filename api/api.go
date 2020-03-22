@@ -76,6 +76,13 @@ func AddContactInfoToUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userUUID, err := neofunc.GetUserUUID(username)
+	if err != nil {
+		log.Println(err)
+	}
+
+	contactNode.RootId = userUUID.(string)
+
 	results, err := contact_info.CreateContactInfo(contactNode)
 	results, err = contact_info.CreateRelationToContactNode(username, contactNode.Phone)
 
@@ -84,6 +91,24 @@ func AddContactInfoToUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
+}
+
+func DeleteContactInfoOfUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	username := params["username"]
+
+	userUUID, err := neofunc.GetUserUUID(username)
+	if err != nil {
+		log.Println(err)
+	}
+	
+	err = contact_info.DeleteContactInfoOfUser(userUUID.(string))
+
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	}
+
+	respondWithJSON(w, http.StatusOK, nil)
 }
 
 func AddEducationInfoToUser(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +158,6 @@ func AddHealthInfoToUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	healthNode.RootID = userUUID.(string)
-	
 
 	results, err := health_info.CreateHealthInfo(healthNode)
 	results, err = health_info.CreateRelationToHealthNode(healthNode.RootID)
@@ -174,16 +198,15 @@ func GetEducationInfoOfUser(w http.ResponseWriter, r *http.Request) {
 func GetHealthInfoOfUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	username := params["username"]
-	
+
 	results, err := health_info.GetHealthInfoOfUser(username)
-	
+
 	if err != nil {
 		log.Println(err)
 	}
-	
+
 	respondWithJSON(w, http.StatusOK, results)
 }
-
 
 func Signin(w http.ResponseWriter, r *http.Request) {
 	var creds jwtauth.Credentials

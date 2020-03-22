@@ -2,7 +2,6 @@ package contact_info
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"uuid-fy/boot"
@@ -26,10 +25,10 @@ func CreateContactInfo(contactInfo models.ContactInfoModel) (interface{}, error)
 	if err != nil {
 		log.Println(err)
 	}
-
+	
 	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
 		result, err := tx.Run(
-			"CREATE (c:ContactInfoNode { name:$name, phone:$phone, email:$email, address:$address}) RETURN c",
+			"CREATE (c:ContactInfoNode { rootuid: $rootuid, name:$name, phone:$phone, email:$email}) RETURN c",
 			contactInterface)
 
 		if err != nil {
@@ -137,6 +136,38 @@ func CreateRelationToContactNode(username, phone string) (interface{}, error) {
 	return result, nil
 }
 
+func DeleteContactInfoOfUser(rootuid string) error {
+	params := map[string]interface{}{
+		"rootuid": rootuid,
+	}
+
+	session, err := boot.GetReadSession()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer session.Close()
+
+	_, err = session.ReadTransaction(func(tx neo4j.Transaction) (i interface{}, err error) {
+		relationDeleteResult, err := tx.Run(
+			"MATCH p=(c:ContactInfoNode {rootuid:$rootuid}) DETACH DELETE c;",
+			params)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		return relationDeleteResult, nil
+	})
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
 func GetContactInfoOfUser(username string) (interface{}, error) {
 
 	params := map[string]interface{}{
@@ -173,7 +204,5 @@ func GetContactInfoOfUser(username string) (interface{}, error) {
 		return nil, err
 	}
 
-	return result, nil
-
-	return nil, errors.New("Session could not be opened")
+	return result, nil 
 }
