@@ -57,7 +57,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	results, err := neofunc.GetAll()
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		respondWithError(w, http.StatusBadRequest, err.Error())
 	}
 
@@ -260,6 +260,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
+		fmt.Println(user)
+		
 		w.WriteHeader(http.StatusOK)
 	}
 }

@@ -6,7 +6,8 @@ import (
 	"log"
 	"uuid-fy/boot"
 	"uuid-fy/models"
-
+	"uuid-fy/pgfunc"
+	
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
@@ -34,7 +35,19 @@ func CreateEducationInfo(educationInfo models.EducationInfoModel) (interface{}, 
 		if err != nil {
 			log.Println(err)
 		}
-
+		
+		var m models.BlockChainModel
+		m.Data = models.NeoEvent {
+			EventType: "CREATE",
+			DataPayload: educationInterface,
+			Message: "Add Education Info",
+		}
+		
+		err = pgfunc.InsertNeoEventInPG(m)
+		if err != nil {
+			return nil, err
+		}
+		
 		if result.Next() {
 			rmap := result.Record().GetByIndex(0)
 

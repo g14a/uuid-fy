@@ -6,7 +6,8 @@ import (
 	"log"
 	"uuid-fy/boot"
 	"uuid-fy/models"
-
+	"uuid-fy/pgfunc"
+	
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
@@ -34,13 +35,25 @@ func CreateContactInfo(contactInfo models.ContactInfoModel) (interface{}, error)
 		if err != nil {
 			log.Println(err)
 		}
-
+		
+		var m models.BlockChainModel
+		m.Data = models.NeoEvent {
+			EventType: "CREATE",
+			DataPayload: contactInterface,
+			Message: "Add Contact Info",
+		}
+		
+		err = pgfunc.InsertNeoEventInPG(m)
+		if err != nil {
+			return nil, err
+		}
+		
 		if result.Next() {
 			rmap := result.Record().GetByIndex(0)
 
 			return rmap.(neo4j.Node).Props(), nil
 		}
-
+		
 		return nil, result.Err()
 	})
 
@@ -54,9 +67,9 @@ func CreateContactInfo(contactInfo models.ContactInfoModel) (interface{}, error)
 
 func UpdateContactInfo(name string, person models.ContactInfoModel) (interface{}, error) {
 
-	var personInterface map[string]interface{}
+	var contactInterface map[string]interface{}
 	inrec, _ := json.Marshal(person)
-	err := json.Unmarshal(inrec, &personInterface)
+	err := json.Unmarshal(inrec, &contactInterface)
 	if err != nil {
 		log.Println(err)
 	}
@@ -72,14 +85,26 @@ func UpdateContactInfo(name string, person models.ContactInfoModel) (interface{}
 		result, err := tx.Run(
 			"MATCH (n:ContactInfoNode { name: $name}) SET n += $props RETURN n", map[string]interface{}{
 				"name":  name,
-				"props": personInterface,
+				"props": contactInterface,
 			})
 
 		if err != nil {
 			log.Println(err)
 			return nil, result.Err()
 		}
-
+		
+		var m models.BlockChainModel
+		m.Data = models.NeoEvent {
+			EventType: "UPDATE",
+			DataPayload: contactInterface,
+			Message: "Update Contact Info",
+		}
+		
+		err = pgfunc.InsertNeoEventInPG(m)
+		if err != nil {
+			return nil, err
+		}
+		
 		if result.Next() {
 			rmap := result.Record().GetByIndex(0)
 
@@ -156,7 +181,21 @@ func DeleteContactInfoOfUser(rootuid string) error {
 		if err != nil {
 			log.Println(err)
 		}
-
+		
+		var m models.BlockChainModel
+		m.Data = models.NeoEvent {
+			EventType: "DELETE",
+			DataPayload: map[string]interface{} {
+				"rootuid": rootuid,
+			},
+			Message: "Delete Contact Info",
+		}
+		
+		err = pgfunc.InsertNeoEventInPG(m)
+		if err != nil {
+			return nil, err
+		}
+		
 		return relationDeleteResult, nil
 	})
 

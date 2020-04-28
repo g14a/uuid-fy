@@ -20,11 +20,11 @@ func main() {
 	r.HandleFunc("/users/{username}/addcontactinfo", api.AddContactInfoToUser).Methods("POST")
 	r.HandleFunc("/users/{username}/contactinfo",  api.GetContactInfoOfUser).Methods("GET")
 	r.HandleFunc("/users/{username}/deletecontactinfo", api.DeleteContactInfoOfUser).Methods("DELETE")
-
+	
 	// Education Info
 	r.HandleFunc("/users/{username}/addeducationinfo", api.AddEducationInfoToUser).Methods("POST")
 	r.HandleFunc("/users/{username}/educationinfo", api.GetEducationInfoOfUser).Methods("GET")
-
+	
 	// Health Info
 	r.HandleFunc("/users/{username}/addhealthinfo", api.AddHealthInfoToUser).Methods("POST")
 	r.HandleFunc("/users/{username}/healthinfo", api.GetHealthInfoOfUser).Methods("GET")

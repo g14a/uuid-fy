@@ -1,5 +1,9 @@
 package models
 
+import (
+	"time"
+)
+
 type UserModel struct {
 	UUID string `json:"id"`
 	Username string	`json:"username"`
@@ -31,4 +35,19 @@ type HealthInfoModel struct {
 	RootID string `json:"rootuid"`
 	BirthHospital string `json:"birthhospital"`
 	BloodGroup string `json:"bloodgroup"`
+}
+
+type BlockChainModel struct {
+	Id           int       `pg:"id,pk"`
+	TimeStamp    time.Time `pg:"timestamp"`
+	PreviousHash string    `pg:"previoushash"`
+	Hash         string    `pg:"hash"`
+	Data         NeoEvent  `pg:"data,type:json"`
+	tableName    struct{}  `pg:"blockchain"`
+}
+
+type NeoEvent struct {
+	EventType   string      `pg:"event"`
+	DataPayload interface{} `pg:"data"`
+	Message     string      `pg:"message"`
 }
