@@ -1,0 +1,14 @@
+neo:
+  serverURL: "bolt://localhost"
+  port: "7687"
+  username: "neo4j"
+  password: "clear"
+
+postgres:
+  serverURL: "localhost:5432"
+  username: "gowtham"
+  password: "clear"
+  dbname: "uuid"
+
+auth:
+  jwt: "WAvaodxvV19YsIKbgWgQByG9jTLnCafuQyixk2lOCXZ7v9ApK1XjjCOlz74RfgV"
